@@ -341,3 +341,33 @@ java.lang.IllegalStateException: Call stack for thread main
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-08-13 08:32:47.509
 !MESSAGE Indexed 'CNC' (20 sources, 130 headers) in 6.18 sec: 10,545 declarations; 47,085 references; 12 unresolved inclusions; 827 syntax errors; 2,028 unresolved names (3.4%)
+!SESSION 2026-08-14 22:52:35.020 -----------------------------------------------
+eclipse.buildId=Version 1.18.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-08-14 22:58:25.257
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-14 22:58:25.259
+!MESSAGE Log4j2 initialized with config file D:\Project_CNC\DIY-CNC\Firmware\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-14 22:58:35.020
+!MESSAGE Started RMI Server, listening on port 41337
+!SESSION 2026-08-15 00:03:19.421 -----------------------------------------------
+eclipse.buildId=Version 1.18.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-08-15 00:04:32.431
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-08-15 00:04:32.433
+!MESSAGE Log4j2 initialized with config file D:\Project_CNC\DIY-CNC\Firmware\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-08-15 00:04:39.406
+!MESSAGE Started RMI Server, listening on port 41337

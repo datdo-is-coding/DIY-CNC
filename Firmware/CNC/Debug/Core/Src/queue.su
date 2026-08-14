@@ -1,0 +1,3 @@
+../Core/Src/queue.c:11:9:enqueue	24	static
+../Core/Src/queue.c:21:9:dequeue	4	static
+../Core/Src/queue.c:32:18:peek	4	static

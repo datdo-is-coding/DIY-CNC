@@ -60,8 +60,8 @@ all: main-build
 main-build: CNC.elf secondary-outputs
 
 # Tool invocations
-CNC.elf CNC.map: $(OBJS) $(USER_OBJS) D:\code\CNC\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "CNC.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\code\CNC\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CNC.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+CNC.elf CNC.map: $(OBJS) $(USER_OBJS) D:\Project_CNC\DIY-CNC\Firmware\CNC\STM32F103C8TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "CNC.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\Project_CNC\DIY-CNC\Firmware\CNC\STM32F103C8TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CNC.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

@@ -1,0 +1,30 @@
+/*
+ * queue.h
+ *
+ *  Created on: Aug 14, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_QUEUE_H_
+#define INC_QUEUE_H_
+
+#include "trajectory_block.h"
+
+#define QUEUE_SIZE 32
+
+typedef enum{
+	FAILED,
+	SUCCESS
+}Result;
+
+
+TrajectoryBlock queue[QUEUE_SIZE];
+
+uint8_t front = 0;
+uint8_t back  = 0;
+
+uint8_t enqueue(TrajectoryBlock* block);
+uint8_t dequeue();
+TrajectoryBlock* peek();
+
+#endif /* INC_QUEUE_H_ */

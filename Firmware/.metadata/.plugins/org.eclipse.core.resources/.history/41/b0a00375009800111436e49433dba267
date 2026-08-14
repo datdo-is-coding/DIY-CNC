@@ -1,0 +1,34 @@
+/*
+ * queue.c
+ *
+ *  Created on: Aug 14, 2026
+ *      Author: Admin
+ */
+
+#include "queue.h"
+
+uint8_t enqueue(TrajectoryBlock* block){
+	if((back + 1) % QUEUE_SIZE == front){
+		return Result.FAILED;
+	}
+
+	back = back + 1 % QUEUE_SIZE;
+	queue[back] = *block;
+
+	return Result.SUCCESS;
+}
+uint8_t dequeue(){
+	if(front == back){
+		return Result.Failed;
+	}
+
+	front = front + 1 % QUEUE_SIZE;
+
+	return Result.SUCCESS;
+
+
+}
+TrajectoryBlock* peek(){
+	if( front == back ) return NULL;
+}
+
