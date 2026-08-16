@@ -1,0 +1,43 @@
+/*
+ * control_axes.c
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+#include "control_axes.h"
+
+void initAxes(){
+	InitMotor(&motors[X_AXIS], &htim2, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_0);
+	InitMotor(&motors[Y_AXIS], &htim3, TIM_CHANNEL_1, LOW , GPIOB, GPIO_PIN_1);
+	InitMotor(&motors[Z_AXIS], &htim4, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_2);
+
+	for( uint8_t i = X_AXIS; i < AXES_NUM; i++){
+		axes[i].axis = i;
+		axes[i].mode = Free;
+		axes[i].motor = motors[i];
+
+		axes.limit = 0.0f;
+		axes[i].currentSteps = 0;
+		axes[i].totalSteps   = 0;
+		axes[i].stepsDone 	 = 0;
+	}
+}
+
+void Calibration(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[i].mode = Calibrate;
+		StartMotor(&axes[i].motor, 9999, Forward);
+	}
+}
+
+void MoveToOrigin(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[i].mode = Original;
+		StartMotor(&axes[i].motor, 9999, Backward);
+	}
+}
+
+void StopAxis(AxisType axis){
+	axes[axis].mode = Free;
+	StopMotor(axes[axis].motor);
+}

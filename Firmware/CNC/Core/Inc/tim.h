@@ -38,12 +38,6 @@ extern TIM_HandleTypeDef htim3;
 
 extern TIM_HandleTypeDef htim4;
 
-
-
-extern DMA_HandleTypeDef hdma_tim2_ch1;
-extern DMA_HandleTypeDef hdma_tim3_ch1_trig;
-extern DMA_HandleTypeDef hdma_tim4_ch1;
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

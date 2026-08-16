@@ -1,0 +1,40 @@
+/*
+ * control_axes.c
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+
+void initAxes(){
+	InitMotor(&motors[X_AXIS], &htim2, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_0);
+	InitMotor(&motors[Y_AXIS], &htim3, TIM_CHANNEL_1, LOW , GPIOB, GPIO_PIN_1);
+	InitMotor(&motors[Z_AXIS], &htim4, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_2);
+
+	for( uint8_t i = X_AXIS; i < AXES_NUM; i++){
+		axes[i].axis = i;
+		axes[i].mode = Free;
+		axes[i].motor = motor[i];
+
+		axis.limit = 0;
+		axes[i].currentSteps = 0;
+		axes[i].totalSteps   = 0;
+		axes[i].stepsDone 	 = 0;
+	}
+}
+
+void Calibration(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[axis].mode = Calibrate;
+		StartMotor(axes[axis].motor, 9999, Forward);
+	}
+}
+
+void MoveToOrigin(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[axis].mode = Origional;
+		StartMotor(axes[axis].motor, 9999, Backward);
+	}
+}
+
+void MoveTo()

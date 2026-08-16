@@ -18,13 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dma.h"
 #include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "control_axes.h"
+#include "control_motor.h"
+#include "sensor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,455 +58,134 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-#define SetForwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,1)
-#define SetBackwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,0)
-#define ToggleDirX()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_0)
-
-#define SetForwardY() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_1,0)
-#define SetBackwardY() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_1,1)
-#define ToggleDirY()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_1)
-
-#define SetForwardZ() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_2,1)
-#define SetBackwardZ() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_2,0)
-#define ToggleDirZ()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_2)
-
-#define SetDirX(m)		m > 0.0 ? SetForwardX() : SetBackwardX()
-#define SetDirY(m)		m > 0.0 ? SetForwardY() : SetBackwardY()
-#define SetDirZ(m)		m > 0.0 ? SetForwardZ() : SetBackwardZ()
-
-#define LED_ON() 		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,0)
-#define LED_OFF()		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1)
 
 #define ABS_FLOAT(x) (((x) < 0.0f) ? (-(x)) : (x))
 
 #define True 	1
 #define False 	0
 
-#define DEBOUNCE_TIME 	1000
-
-#define MAX_PULSE_COUNTS 65535
-
-#define MIN_SPEED 	4999 // ARR
-#define ACCEL 		50
-#define MAX_SPEED   499
-
-#define RAMP_UP_STEPS 80
-
-#define PI 3.14f
-
-// 1/8 step
-uint32_t last_exti_time[6] = {0};
-
-uint8_t moveToOriginStateX = False;
-uint8_t moveToOriginStateY = False;
-uint8_t moveToOriginStateZ = False;
-
-uint8_t calib_x = False;
-uint8_t calib_y = False;
-uint8_t cailb_z = False;
-
-uint32_t step_count_X = 0;
-uint32_t step_count_Y = 0;
-uint32_t step_count_Z = 0;
-
-uint8_t dma_X_overflow = 0;
-uint8_t dma_Y_overflow = 0;
-uint8_t dma_Z_overflow = 0;
-
-uint8_t running = False;
-
-float limit_X = 0.0;
-float limit_y = 0.0;
-float limit_z = 0.0;
+#define MM_PER_STEP 0.0025f
 
 
 
-static uint32_t d_val_X = 0;
-static uint32_t d_val_Y = 0;
-static uint32_t d_val_Z = 0;
-
-static uint32_t current_ARR_X = MIN_SPEED;
-static uint32_t current_ARR_Y = MIN_SPEED;
-static uint32_t current_ARR_Z = MIN_SPEED;
-
-static uint32_t target_ARR_X = MAX_SPEED;
-static uint32_t target_ARR_Y = MAX_SPEED;
-static uint32_t target_ARR_Z = MAX_SPEED;
-
-static uint32_t steps_done_X = 0;
-static uint32_t total_steps_X = 0;
-static uint32_t remaining_steps_X = 0;
-static uint8_t  coord_mode_X = False;
-
-static uint32_t steps_done_Y = 0;
-static uint32_t total_steps_Y = 0;
-static uint32_t remaining_steps_Y = 0;
-static uint8_t  coord_mode_Y = False;
-
-
-static float currentX = 0.0;
-static float currentY = 0.0;
-static float currentZ = 0.0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	uint32_t now = HAL_GetTick();
 
-	if(GPIO_Pin == GPIO_PIN_12){
-		if(now - last_exti_time[0] < DEBOUNCE_TIME) return;
-		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_12) == GPIO_PIN_SET){
-			last_exti_time[0] = now;
+	if(GPIO_Pin == CT_X1_Pin){
+		if(now - sensors[CT_X1].last_time < DEBOUNCE_TIME) return;
+		if(ReadSensor(sensors[CT_X1]) == GPIO_PIN_SET){
+			sensors[CT_X1].last_time = now;
 
-			if (moveToOriginStateX == True){
-				moveToOriginStateX = False;
-				HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
-				__HAL_TIM_DISABLE_IT(&htim2, TIM_IT_UPDATE);
-				currentX = 0.0;
+			if (axes[X_AXIS].mode == AXIS_HOMING){
+
+				StopAxis(X_AXIS);
+
+				axes[X_AXIS].currentSteps = 0;
 			}
 		}
-
 	}
 
-	if(GPIO_Pin == GPIO_PIN_13){
-		if(now - last_exti_time[1] < DEBOUNCE_TIME) return;
-		if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_13) == GPIO_PIN_SET){
-			last_exti_time[1] = now;
+	if(GPIO_Pin == CT_X2_Pin){
+		if(now - sensors[CT_X2].last_time < DEBOUNCE_TIME) return;
+		if(ReadSensor(sensors[CT_X2]) == GPIO_PIN_SET){
+			sensors[CT_X2].last_time = now;
+			StopAxis(X_AXIS);
 
-			if(calib_x){
-				HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
-				__HAL_TIM_DISABLE_IT(&htim2, TIM_IT_UPDATE);
-				calib_x = False;
-				step_count_X = MAX_PULSE_COUNTS * dma_X_overflow +
-						(MAX_PULSE_COUNTS - __HAL_DMA_GET_COUNTER(&hdma_tim2_ch1));
-				limit_X = (float) step_count_X / 1600;
-				currentX = limit_X;
+			if(axes[X_AXIS].mode == AXIS_CALIBRATING){
+
+
 			}
 		}
-
 	}
 
-	if(GPIO_Pin == GPIO_PIN_14){
-		if(now - last_exti_time[2] < DEBOUNCE_TIME) return;
-		if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_14) == GPIO_PIN_SET){
-			last_exti_time[2] = now;
-			if(moveToOriginStateY == True){
-				moveToOriginStateY = False;
-				HAL_TIM_PWM_Stop_DMA(&htim3,TIM_CHANNEL_1);
-				__HAL_TIM_DISABLE_IT(&htim3,TIM_IT_UPDATE);
-				currentY = 0.0;
+	if(GPIO_Pin == CT_Y1_Pin){
+		if(now - sensors[CT_Y1].last_time < DEBOUNCE_TIME) return;
+		if(ReadSensor(sensors[CT_Y1]) == GPIO_PIN_SET){
+			sensors[CT_Y1].last_time = now;
+			if(axes[Y_AXIS].mode == AXIS_HOMING){
+
+				StopAxis(Y_AXIS);
+				axes[Y_AXIS].currentSteps = 0;
 			}
 		}
-
 	}
 
-	if(GPIO_Pin == GPIO_PIN_15){
-		if(now - last_exti_time[3] < DEBOUNCE_TIME) return;
-		if(HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_15) == GPIO_PIN_SET)
+	if(GPIO_Pin == CT_Y2_Pin){
+		if(now - sensors[CT_Y2].last_time < DEBOUNCE_TIME) return;
+		if(ReadSensor(sensors[CT_Y2]) == GPIO_PIN_SET)
 		{
-			last_exti_time[3] = now;
+			sensors[CT_Y2].last_time = now;
+			StopAxis(Y_AXIS);
+			if(axes[Y_AXIS].mode == AXIS_CALIBRATING){
 
-			if(calib_y){
-				HAL_TIM_PWM_Stop_DMA(&htim3,TIM_CHANNEL_1);
-				__HAL_TIM_DISABLE_IT(&htim3, TIM_IT_UPDATE);
-				calib_y = False;
-				step_count_Y = MAX_PULSE_COUNTS * dma_Y_overflow +
-						(MAX_PULSE_COUNTS - __HAL_DMA_GET_COUNTER(&hdma_tim3_ch1_trig));
-				limit_y = (float) step_count_Y / 1600;
-				currentY = limit_y;
+
 			}
 		}
 	}
-//
-//
-//	if(GPIO_Pin == GPIO_PIN_8){
-//		if(now - last_exti_time[4] < DEBOUNCE_TIME) return;
-//		last_exti_time[4] = now;
-//		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
-//	}
-//	if(GPIO_Pin == GPIO_PIN_9){
-//		if(now - last_exti_time[5] < DEBOUNCE_TIME) return;
-//		last_exti_time[5] = now;
-//		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
-//	}
+
+
+	if(GPIO_Pin == CT_Z1_Pin){
+		if(now - sensors[CT_Z1].last_time < DEBOUNCE_TIME) return;
+		sensors[CT_Z1].last_time = now;
+		if(ReadSensor(sensors[CT_Z1]) == GPIO_PIN_SET){
+			StopAxis(Z_AXIS);
+			if(axes[Z_AXIS].mode == AXIS_HOMING){
+
+
+				axes[Z_AXIS].currentSteps = 0;
+			}
+		}
+
+	}
+	if(GPIO_Pin == CT_Z2_Pin){
+		if(now - sensors[CT_Z2].last_time < DEBOUNCE_TIME) return;
+		sensors[CT_Z2].last_time = now;
+		if(ReadSensor(sensors[CT_Z2]) == GPIO_PIN_SET){
+			StopAxis(Z_AXIS);
+
+			if(axes[Z_AXIS].mode == AXIS_CALIBRATING){
+
+
+			}
+		}
+
+	}
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim -> Instance == TIM2){
-
-		if(coord_mode_X){
-			steps_done_X ++;
-			uint16_t accel_limit = RAMP_UP_STEPS;
-			if(total_steps_X < 2 * RAMP_UP_STEPS){
-				accel_limit = total_steps_X / 2;
-			}
-
-			if(steps_done_X < accel_limit){
-				current_ARR_X -= ACCEL;
-			}
-
-			else if(steps_done_X >= total_steps_X - RAMP_UP_STEPS){
-				current_ARR_X += ACCEL;
-			}
-			else{
-				current_ARR_X = target_ARR_X;
-			}
-			__HAL_TIM_SET_AUTORELOAD(&htim2,current_ARR_X);
-			d_val_X = (current_ARR_X + 1) / 2;
-
-		}
-		else{
-			if(current_ARR_X > MAX_SPEED){
-				if(current_ARR_X > MAX_SPEED + ACCEL){
-					current_ARR_X -= ACCEL;
-				}
-				else{
-					current_ARR_X = MAX_SPEED;
-				}
-				__HAL_TIM_SET_AUTORELOAD(&htim2,current_ARR_X);
-				d_val_X = (current_ARR_X + 1) / 2;
-			}
+		if(axes[X_AXIS].mode == AXIS_CALIBRATING){
+			axes[X_AXIS].limit += MM_PER_STEP;
 		}
 	}
 
 	if(htim -> Instance == TIM3){
-		if(coord_mode_Y){
-			steps_done_Y ++;
-			uint16_t accel_limit = RAMP_UP_STEPS;
-			if(total_steps_Y < 2 * RAMP_UP_STEPS){
-				accel_limit = total_steps_Y / 2;
-			}
-
-			if(steps_done_Y < accel_limit){
-				current_ARR_Y -= ACCEL;
-			}
-
-			else if(steps_done_Y >= total_steps_Y - RAMP_UP_STEPS){
-				current_ARR_Y += ACCEL;
-			}
-			else{
-				current_ARR_Y = target_ARR_Y;
-			}
-			__HAL_TIM_SET_AUTORELOAD(&htim3,current_ARR_Y);
-			d_val_Y = (current_ARR_Y + 1) / 2;
-
-		}
-		else{
-			if(current_ARR_Y > MAX_SPEED){
-				if(current_ARR_Y > MAX_SPEED + ACCEL){
-					current_ARR_Y -= ACCEL;
-				}
-				else{
-					current_ARR_Y = MAX_SPEED;
-				}
-				__HAL_TIM_SET_AUTORELOAD(&htim3,current_ARR_Y);
-				d_val_Y = (current_ARR_Y + 1) / 2;
-			}
+		if(axes[Y_AXIS].mode == AXIS_CALIBRATING){
+			axes[Y_AXIS].limit += MM_PER_STEP;
 		}
 	}
 
 	if(htim -> Instance == TIM4){
-
+		if(axes[Z_AXIS].mode == AXIS_CALIBRATING){
+			axes[Z_AXIS].limit += MM_PER_STEP;
+		}
 	}
 
 }
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM2) {
-    	if(calib_x){
-    		dma_X_overflow ++;
-    		HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t*)&d_val_X, MAX_PULSE_COUNTS);
-    	}
-    	else if(remaining_steps_X > 0){
-    		uint16_t current_steps = (remaining_steps_X >= MAX_PULSE_COUNTS) ?
-    				MAX_PULSE_COUNTS : remaining_steps_X;
-    		remaining_steps_X -= current_steps;
-    		HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, (uint32_t*)&d_val_X, current_steps);
-    	}
-    	else{
-    		HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
-    		__HAL_TIM_DISABLE_IT(&htim2, TIM_IT_UPDATE);
-    		coord_mode_X = False;
-    	}
 
     }
     if (htim->Instance == TIM3){
-    	if(calib_y){
-    		dma_Y_overflow ++;
-    		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, (uint32_t*)&d_val_Y, MAX_PULSE_COUNTS);
-    	}
-    	else if(remaining_steps_Y > 0){
-			uint16_t current_steps = (remaining_steps_Y >= MAX_PULSE_COUNTS) ?
-					MAX_PULSE_COUNTS : remaining_steps_Y;
-			remaining_steps_Y -= current_steps;
-			HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, (uint32_t*)&d_val_Y, current_steps);
-		}
-		else{
-			HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_1);
-			__HAL_TIM_DISABLE_IT(&htim3, TIM_IT_UPDATE);
-			coord_mode_Y = False;
-		}
+
     }
     if (htim->Instance == TIM4){
 
     }
 }
 
-
-
-void MoveToOrigin(){
-
-	uint8_t stateX = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_12);
-	uint8_t stateY = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_14);
-    uint8_t stateZ = 0;
-
-	current_ARR_X = MIN_SPEED;
-	current_ARR_Y = MIN_SPEED;
-
-	d_val_X = (current_ARR_X + 1) / 2;
-	d_val_Y = (current_ARR_Y + 1) / 2;
-
-	if(!stateX){
-		moveToOriginStateX = True;
-		SetBackwardX();
-
-		__HAL_TIM_SET_AUTORELOAD(&htim2, current_ARR_X);
-
-		HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &d_val_X, MAX_PULSE_COUNTS);
-
-		__HAL_TIM_ENABLE_IT(&htim2 , TIM_IT_UPDATE);
-
-	}
-
-	if(!stateY){
-		moveToOriginStateY = True;
-		SetBackwardY();
-		__HAL_TIM_SET_AUTORELOAD(&htim3, current_ARR_Y);
-
-		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, &d_val_Y, MAX_PULSE_COUNTS);
-
-		__HAL_TIM_ENABLE_IT(&htim3 , TIM_IT_UPDATE);
-
-	}
-
-	if(!stateZ){
-
-	}
-}
-
-void Calibration(){
-	calib_x = True;
-	calib_y = True;
-//	calib_z = True;
-
-	dma_X_overflow = 0;
-	dma_Y_overflow = 0;
-
-	current_ARR_X = MIN_SPEED;
-	current_ARR_Y = MIN_SPEED;
-
-	d_val_X = (current_ARR_X + 1) / 2;
-	d_val_Y = (current_ARR_Y + 1) / 2;
-
-
-	SetForwardX();
-
-	__HAL_TIM_SET_AUTORELOAD(&htim2, current_ARR_X);
-
-	HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &d_val_X, MAX_PULSE_COUNTS);
-
-	__HAL_TIM_ENABLE_IT(&htim2 , TIM_IT_UPDATE);
-
-	SetForwardY();
-
-	__HAL_TIM_SET_AUTORELOAD(&htim3, current_ARR_Y);
-
-	HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, &d_val_Y, MAX_PULSE_COUNTS);
-
-	__HAL_TIM_ENABLE_IT(&htim3 , TIM_IT_UPDATE);
-}
-
-void MoveToCordinate(float x,float y,float z){
-	if(x > limit_X || x < 0.0 || y > limit_y || y < 0.0 /** z <0.0 || z > limit_z**/){
-		return;
-	}
-
-	float distance_X = ABS_FLOAT(currentX- x);
-	float distance_Y = ABS_FLOAT(currentY - y);
-//	float distance_Z = ABS_FLOAT(currentZ - z);
-
-	uint32_t steps_X = (uint32_t)(distance_X * 1600.0f);
-	uint32_t steps_Y = (uint32_t)(distance_Y * 1600.0f);
-//	uint32_t steps_Z = CalStep(distance_Z);
-
-	uint16_t t_arr_X = MAX_SPEED;
-	uint16_t t_arr_Y = MAX_SPEED;
-//	uint16_t t_arr_Z = MAX_SPEED;
-
-	if (steps_X > 0 && steps_Y > 0) {
-		if (steps_X >= steps_Y) {
-			t_arr_X = MAX_SPEED;
-			t_arr_Y = (uint32_t)(((MAX_SPEED + 1.0f) * ((float)steps_X / (float)steps_Y)) - 1.0f);
-		}
-		else {
-			t_arr_Y = MAX_SPEED;
-			t_arr_X = (uint32_t)(((MAX_SPEED + 1.0f) * ((float)steps_Y / (float)steps_X)) - 1.0f);
-		}
-	}
-
-	if(steps_X > 0){
-		steps_done_X = 0;
-		target_ARR_X = t_arr_X;
-		total_steps_X = steps_X;
-		current_ARR_X = MIN_SPEED;
-		d_val_X = (current_ARR_X + 1) /2;
-
-		uint16_t first_chunk = (total_steps_X > MAX_PULSE_COUNTS) ?
-				MAX_PULSE_COUNTS : total_steps_X;
-		remaining_steps_X = total_steps_X - first_chunk;
-
-		SetDirX(x - currentX);
-
-		__HAL_TIM_SET_AUTORELOAD(&htim2, current_ARR_X);
-
-		HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &d_val_X, first_chunk);
-
-		__HAL_TIM_ENABLE_IT(&htim2 , TIM_IT_UPDATE);
-
-		coord_mode_X = True;
-
-	}
-
-	if(steps_Y > 0){
-		steps_done_Y = 0;
-		target_ARR_Y = t_arr_Y;
-		total_steps_Y = steps_Y;
-		current_ARR_Y = MIN_SPEED;
-		d_val_Y = (current_ARR_Y + 1) /2;
-
-		uint16_t first_chunk = (total_steps_Y > MAX_PULSE_COUNTS) ?
-				MAX_PULSE_COUNTS : total_steps_Y;
-		remaining_steps_Y = total_steps_Y - first_chunk;
-
-		SetDirY(y - currentY);
-
-		__HAL_TIM_SET_AUTORELOAD(&htim3, current_ARR_Y);
-
-		HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_1, &d_val_Y, first_chunk);
-
-		__HAL_TIM_ENABLE_IT(&htim3 , TIM_IT_UPDATE);
-
-		coord_mode_Y = True;
-
-	}
-
-
-
-
-
-
-
-	// SetDirZ(z - current_z);
-
-}
 
 /* USER CODE END 0 */
 
@@ -538,26 +218,27 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  InitSensors();
+
+  initAxes();
+
+  LED_OFF();
   HAL_Delay(3000);
 
-  MoveToOrigin();
-  LED_OFF();
-  while(moveToOriginStateX || moveToOriginStateY);
   LED_ON();
-  Calibration();
-  while(calib_x || calib_y);
 
   MoveToOrigin();
+
+  while(isHoming());
   LED_OFF();
-  while(moveToOriginStateX || moveToOriginStateY);
+  Calibration();
 
-
+  while(isCalibrating());
 
   /* USER CODE END 2 */
 

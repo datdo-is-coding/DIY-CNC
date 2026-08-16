@@ -1,0 +1,44 @@
+/*
+ * axes.h
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_AXES_H_
+#define INC_AXES_H_
+
+#include "control_motor.h"
+
+#define AXES_NUM 3
+
+typedef enum{
+	X_AXIS,
+	Y_AXIS,
+	Z_AXIS
+}AxisType;
+
+
+typedef struct{
+	AxisType axis;
+
+	uint32_t totalSteps;
+	uint32_t currentSteps;
+	uint32_t stepsDone;
+	Motor motor;
+}Axis;
+
+static extern Axis axes[AXES_NUM];
+
+static Motor motors[3];
+
+void initAxes(){
+	InitMotor(&motors[X_AXIS], &htim2, TIM_CHANNEL_1, 1, GPIOB, GPIO_PIN_1);
+	for( uint8_t i = 0; i < AXES_NUM; i++){
+		axes[i].axis = i;
+		axes[i].motor = motor[i];
+	}
+}
+
+
+#endif /* INC_AXES_H_ */

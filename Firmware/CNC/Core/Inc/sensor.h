@@ -1,0 +1,41 @@
+/*
+ * sensor.h
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_SENSOR_H_
+#define INC_SENSOR_H_
+
+#include "stdint.h"
+#include "gpio.h"
+
+
+#define ReadSensor(sensor) HAL_GPIO_ReadPin(sensor.port, sensor.channel)
+#define SENSOR_NUM 6
+
+#define DEBOUNCE_TIME 100
+
+typedef enum{
+	CT_X1,
+	CT_X2,
+	CT_Y1,
+	CT_Y2,
+	CT_Z1,
+	CT_Z2
+}SensorType;
+
+typedef struct{
+	GPIO_TypeDef* port;
+	uint16_t channel;
+	uint32_t last_time;
+}Sensor;
+
+extern Sensor sensors[SENSOR_NUM];
+
+void InitSensor(SensorType type,GPIO_TypeDef* port, uint16_t channel);
+
+void InitSensors();
+
+#endif /* INC_SENSOR_H_ */

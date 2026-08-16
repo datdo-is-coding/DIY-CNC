@@ -1,0 +1,20 @@
+/*
+ * motion_profile.h
+ *
+ *  Created on: Aug 16, 2026
+ *      Author: Admin
+ */
+
+#ifndef MOTION_PROFILE_H_
+#define MOTION_PROFILE_H_
+
+
+typedef struct{
+	float currentSpeed;
+	float targetSpeed;
+
+	float maxSpeed;
+}SpeedProfile;
+
+
+#endif /* MOTION_PROFILE_H_ */

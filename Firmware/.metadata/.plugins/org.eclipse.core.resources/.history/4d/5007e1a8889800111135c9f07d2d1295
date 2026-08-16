@@ -1,0 +1,54 @@
+/*
+ * axes.h
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_CONTROL_AXES_H_
+#define INC_CONTROL_AXES_H_
+
+#include "control_motor.h"
+
+#define AXES_NUM 3
+
+typedef enum{
+	X_AXIS,
+	Y_AXIS,
+	Z_AXIS
+}AxisType;
+
+typedef enum{
+	Free,
+	Original,
+	Calibrate,
+	Moving,
+
+}AxisMode;
+
+typedef struct{
+	AxisType axis;
+	AxisMode mode;
+
+	float limit;
+
+	uint32_t totalSteps;
+	uint32_t currentSteps;
+	uint32_t stepsDone;
+	Motor motor;
+}Axis;
+
+static Axis axes[AXES_NUM];
+
+static Motor motors[3];
+
+void initAxes();
+
+void Calibration();
+
+void MoveToOrigin();
+
+void StopAxis(AxisType axis);
+
+void MoveTo();
+#endif /* INC_CONTROL_AXES_H_ */

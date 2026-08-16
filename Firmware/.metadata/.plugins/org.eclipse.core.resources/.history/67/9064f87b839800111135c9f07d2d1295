@@ -1,0 +1,23 @@
+/*
+ * sensor.h
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_SENSOR_H_
+#define INC_SENSOR_H_
+
+#include "gpio.h"
+
+#define ReadSensor(sensor) HAL_GPIO_ReadPin(sensor -> port, sensor -> channel)
+#define SENSOR_NUM 6
+
+
+typedef struct{
+	GPIO_TypeDef* port;
+	uint16_t channel;
+}Sensor;
+ Sensor sensors[SENSOR_NUM];
+
+#endif /* INC_SENSOR_H_ */

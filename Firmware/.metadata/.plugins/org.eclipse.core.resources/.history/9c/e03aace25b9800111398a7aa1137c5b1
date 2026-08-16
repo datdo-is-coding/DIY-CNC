@@ -1,0 +1,62 @@
+/*
+ * control_motor.h
+ *
+ *  Created on: Aug 14, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_CONTROL_MOTOR_H_
+#define INC_CONTROL_MOTOR_H_
+
+#include "tim.h"
+#include "stdint.h"
+
+#define SetForwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,1)
+#define SetBackwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,0)
+#define ToggleDirX()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_0)
+
+#define SetForwardY() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_1,0)
+#define SetBackwardY() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_1,1)
+#define ToggleDirY()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_1)
+
+#define SetForwardZ() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_2,1)
+#define SetBackwardZ() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_2,0)
+#define ToggleDirZ()	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_2)
+
+#define SetDirX(m)		m > 0.0 ? SetForwardX() : SetBackwardX()
+#define SetDirY(m)		m > 0.0 ? SetForwardY() : SetBackwardY()
+#define SetDirZ(m)		m > 0.0 ? SetForwardZ() : SetBackwardZ()
+
+#define LED_ON() 		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,0)
+#define LED_OFF()		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1)
+
+#define AXES_NUM 3
+
+typedef enum{
+	X_AXIS,
+	Y_AXIS,
+	Z_AXIS
+}Axis;
+
+
+
+
+typedef struct{
+	TIM_HandleTypeDef tim;
+	DMA_HandleTypeDef dma_tim;
+	uint32_t channel;
+
+	uint32_t ARR;
+	uint32_t duty_value;
+
+}Motor;
+
+extern static Motor motors[AXES_NUM];
+
+void InitMotor(TIM_HandleTypeDef tim, DMA_HandleTypeDef dma, uint32_t channel);
+void StartMotor();
+void StopMotor();
+
+
+
+#endif /* INC_CONTROL_MOTOR_H_ */

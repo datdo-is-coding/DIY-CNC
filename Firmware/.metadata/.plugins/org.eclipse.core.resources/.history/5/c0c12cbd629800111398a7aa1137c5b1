@@ -1,0 +1,57 @@
+/*
+ * control_motor->c
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+
+#include "control_motor.h"
+
+void InitMotor(Motor* motor, TIM_HandleTypeDef* tim,
+			   uint32_t channel, uint8_t forward_bit, GPIO_TypeDef* port,
+			   uint16_t pin){
+	// Initialize axis for each motor
+	motor -> tim  = tim;
+	motor -> channel = channel;
+
+	motor -> ARR = 0;
+	motor -> duty_value = 0;
+	motor -> forward_bit = forward_bit;
+
+	motor -> port = port;
+	motor -> pin  =  pin;
+}
+
+void StartMotor(Motor* motor, uint32_t arr_value, uint8_t dir){
+	motor->ARR = arr_value;
+	motor->duty_value = (arr_value + 1) / 2;
+
+	uint8_t dir_bit =  (dir == Forward) ? motor -> forward_bit : !motor -> forward_bit;
+
+	SetDirection(motor -> port, motor -> pin, dir_bit);
+
+	__HAL_TIM_SET_AUTORELOAD(motor->tim, motor->ARR);
+
+	__HAL_TIM_SET_COMPARE(
+	    motor->tim,
+	    motor->channel,
+	    motor->duty_value
+	);
+
+	HAL_TIM_PWM_Start_IT(motor -> tim, motor -> channel);
+}
+
+void StopMotor(Motor* motor){
+	HAL_TIM_PWM_Stop_IT(motor -> tim, motor -> channel);
+}
+
+void SetSpeed(uint32_t arr_value){
+	__HAL_TIM_SET_AUTORELOAD(motor->tim, motor->ARR);
+
+	__HAL_TIM_SET_COMPARE(
+		motor->tim,
+		motor->channel,
+		motor->duty_value
+	);
+}

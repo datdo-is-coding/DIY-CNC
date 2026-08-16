@@ -8,6 +8,10 @@
 #ifndef INC_CONTROL_MOTOR_H_
 #define INC_CONTROL_MOTOR_H_
 
+#include "tim.h"
+#include "stdint.h"
+#include "gpio.h"
+
 
 #define SetForwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,1)
 #define SetBackwardX() 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_0,0)
@@ -28,10 +32,35 @@
 #define LED_ON() 		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,0)
 #define LED_OFF()		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_13,1)
 
+#define HIGH  			1
+#define LOW				0
 
-void StartMotor();
-void StopMotor();
+#define Forward 		1
+#define Backward 		0
+
+#define SetDirection(port,pin,bit) HAL_GPIO_WritePin((port),(pin),(bit))
+
+typedef struct{
+	TIM_HandleTypeDef* tim;
+
+	uint32_t channel;
+
+	uint32_t ARR;
+	uint32_t duty_value;
+
+	uint8_t forward_bit;
+	GPIO_TypeDef* port;
+	uint16_t pin;
+
+}Motor;
 
 
+void InitMotor(Motor* motor, TIM_HandleTypeDef* tim,
+			   uint32_t channel, uint8_t forward_bit, GPIO_TypeDef* port,
+			   uint16_t pin);
+
+void StartMotor(Motor* motor, uint32_t arr_value,uint8_t dir);
+void StopMotor(Motor* motor);
+void SetSpeed(Motor* motor, uint32_t arr_value);
 
 #endif /* INC_CONTROL_MOTOR_H_ */

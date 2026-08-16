@@ -1,0 +1,37 @@
+/*
+ * control_motor.c
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+
+#include "control_motor.h"
+
+void InitMotor(TIM_HandleTypeDef* tim, DMA_HandleTypeDef* dma, uint32_t channel){
+	// Initialize axis for each motor
+	for(int i = X_AXIS; i <= Z_AXIS; i++){
+		motors[i].axis = i;
+		motors[i].tim  = tim[i];
+		motors[i].dma_tim = dma[i];
+		motors[i].channel = channel;
+
+		motors[i].ARR_value = 0;
+		motors[i].duty_value = 0;
+
+
+		motors[i].steps_done = 0;
+		motors[i].remaining_step = 0;
+		motors[i].total_steps = 0;
+	}
+}
+
+void StartMotor(){
+
+}
+
+void StopMotor(Axis axis){
+	HAL_TIM_PWM_Stop_DMA(&motors[axis].tim, motors[axis].channel );
+	__HAL_TIM_DISABLE_IT(&motors[axis].tim, TIM_IT_UPDATE);
+	coord_mode_Y = False;
+}

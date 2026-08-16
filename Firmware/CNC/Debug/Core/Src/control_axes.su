@@ -1,0 +1,6 @@
+../Core/Src/control_axes.c:12:6:initAxes	24	static
+../Core/Src/control_axes.c:29:6:Calibration	16	static
+../Core/Src/control_axes.c:36:6:MoveToOrigin	16	static
+../Core/Src/control_axes.c:43:6:StopAxis	16	static
+../Core/Src/control_axes.c:48:9:isHoming	4	static
+../Core/Src/control_axes.c:52:9:isCalibrating	4	static

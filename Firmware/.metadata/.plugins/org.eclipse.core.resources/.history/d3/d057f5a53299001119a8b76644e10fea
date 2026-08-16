@@ -1,0 +1,56 @@
+/*
+ * control_axes.c
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+#include "control_axes.h"
+
+Axis axes[AXES_NUM];
+
+
+void initAxes(){
+	InitMotor(&axes[X_AXIS].motor, &htim2, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_0);
+	InitMotor(&axes[Y_AXIS].motor, &htim3, TIM_CHANNEL_1, LOW , GPIOB, GPIO_PIN_1);
+	InitMotor(&axes[Z_AXIS].motor, &htim4, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_2);
+
+	for( uint8_t i = X_AXIS; i < AXES_NUM; i++){
+		axes[i].axis = i;
+		axes[i].mode = AXIS_IDLE;
+
+
+		axes[i].limit = 0.0f;
+		axes[i].currentSteps = 0;
+		axes[i].totalSteps   = 0;
+		axes[i].stepsDone 	 = 0;
+	}
+}
+
+void Calibration(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[i].mode = AXIS_CALIBRATING;
+		StartMotor(&axes[i].motor, 4999, Forward);
+	}
+}
+
+void MoveToOrigin(){
+	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+		axes[i].mode = AXIS_HOMING;
+		StartMotor(&axes[i].motor, 4999, Backward);
+	}
+}
+
+void StopAxis(AxisType axis){
+	axes[axis].mode = AXIS_IDLE;
+	StopMotor(&axes[axis].motor);
+}
+
+uint8_t isHoming(){
+	return 	axes[X_AXIS].mode == AXIS_HOMING ||
+			axes[Y_AXIS].mode == AXIS_HOMING ||
+			axes[Z_AXIS].mode == AXIS_HOMING;
+}
+
+uint8_t isCalibrating(){
+	return axes[X_AXIS].mode == AXIS_CALIBRATING || axes[Y_AXIS].mode == AXIS_CALIBRATING || axes[Z_AXIS].mode == AXIS_CALIBRATING;
+}

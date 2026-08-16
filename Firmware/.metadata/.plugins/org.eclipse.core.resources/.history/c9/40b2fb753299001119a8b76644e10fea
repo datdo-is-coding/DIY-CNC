@@ -1,0 +1,17 @@
+/*
+ * motion_profile.h
+ *
+ *  Created on: Aug 16, 2026
+ *      Author: Admin
+ */
+
+#ifndef MOTION_PROFILE_H_
+#define MOTION_PROFILE_H_
+
+
+typedef struct{
+
+}MotionProfile;
+
+
+#endif /* MOTION_PROFILE_H_ */

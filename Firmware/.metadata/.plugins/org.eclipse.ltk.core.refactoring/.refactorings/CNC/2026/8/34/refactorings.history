@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;CNC/Core/Inc/motion_profile.h&apos; to &apos;speed_profile.h&apos;" description="Rename resource &apos;motion_profile.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="Core/Inc/motion_profile.h" name="speed_profile.h" stamp="1786857830629" updateReferences="true"/>
+</session>
