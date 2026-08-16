@@ -1,0 +1,19 @@
+/*
+ * cmd_line.c
+ *
+ *  Created on: Aug 16, 2026
+ *      Author: Admin
+ */
+
+
+#include "cmd_line.h"
+
+uint8_t character = 0;
+
+uint8_t cmd_idx = 0;
+
+uint8_t buffer[BUFFER_LENGTH];
+
+void parseCMD4(){
+
+}

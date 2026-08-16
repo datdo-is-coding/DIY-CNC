@@ -24,7 +24,8 @@ Core/Src/control_axes.o: ../Core/Src/control_axes.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
- ../Core/Inc/gpio.h
+ ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
+ ../Core/Inc/gpio.h ../Core/Inc/speed_profile.h
 ../Core/Inc/control_axes.h:
 ../Core/Inc/control_motor.h:
 ../Core/Inc/tim.h:
@@ -53,4 +54,6 @@ Core/Src/control_axes.o: ../Core/Src/control_axes.c \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
+../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 ../Core/Inc/gpio.h:
+../Core/Inc/speed_profile.h:

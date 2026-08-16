@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -26,6 +27,7 @@
 #include "control_axes.h"
 #include "control_motor.h"
 #include "sensor.h"
+#include "cmd_line.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,6 +37,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define TIM1_CONTROL_FREQ 100.0f
+#define TIM1_DT (1.0f / TIM1_CONTROL_FREQ)
 
 /* USER CODE END PD */
 
@@ -154,10 +159,28 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim -> Instance == TIM1){
+		for(uint8_t i = X_AXIS ; i < AXES_NUM; i++){
+			if(axes[i].mode == AXIS_CALIBRATING){
+				float nextSpeed = axes[i].speed.currentSpeed + axes[i].speed.acceleration * TIM1_DT;
+				if( nextSpeed < MAX_SPEED ){
+					axes[i].speed.currentSpeed += axes[i].speed.acceleration * TIM1_DT;
+				}
+				else{
+					axes[i].speed.currentSpeed = MAX_SPEED;
+				}
+
+				SetSpeedAxis(i);
+			}
+		}
+	}
+
+
 	if(htim -> Instance == TIM2){
 		if(axes[X_AXIS].mode == AXIS_CALIBRATING){
 			axes[X_AXIS].limit += MM_PER_STEP;
 		}
+
 	}
 
 	if(htim -> Instance == TIM3){
@@ -174,18 +197,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 }
 
-void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
-    if (htim->Instance == TIM2) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart -> Instance == USART2){
+		HAL_UART_Receive_IT(&huart2, &character, 1);
+		if(character == '\n'){
 
-    }
-    if (htim->Instance == TIM3){
+		}
+		else{
 
-    }
-    if (htim->Instance == TIM4){
+		}
 
-    }
+	}
 }
-
 
 /* USER CODE END 0 */
 
@@ -221,7 +244,11 @@ int main(void)
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+
+
 
   InitSensors();
 
@@ -229,7 +256,7 @@ int main(void)
 
   LED_OFF();
   HAL_Delay(3000);
-
+  HAL_TIM_Base_Start_IT(&htim1);
   LED_ON();
 
   MoveToOrigin();

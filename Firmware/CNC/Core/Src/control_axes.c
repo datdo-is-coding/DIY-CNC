@@ -15,10 +15,10 @@ void initAxes(){
 	InitSpeedProfile(&axes[X_AXIS].speed, MAX_SPEED);
 
 	InitMotor(&axes[Y_AXIS].motor, &htim3, TIM_CHANNEL_1, LOW , GPIOB, GPIO_PIN_1);
-	InitSpeedProfile(&axes[X_AXIS].speed, MAX_SPEED);
+	InitSpeedProfile(&axes[Y_AXIS].speed, MAX_SPEED);
 
 	InitMotor(&axes[Z_AXIS].motor, &htim4, TIM_CHANNEL_1, HIGH, GPIOB, GPIO_PIN_2);
-	InitSpeedProfile(&axes[X_AXIS].speed, MAX_SPEED);
+	InitSpeedProfile(&axes[Z_AXIS].speed, MAX_SPEED);
 
 
 
@@ -35,22 +35,36 @@ void initAxes(){
 }
 
 void Calibration(){
+
 	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
 		axes[i].mode = AXIS_CALIBRATING;
-		StartMotor(&axes[i].motor, 4999, Forward);
+		axes[i].speed.currentSpeed = MIN_SPEED;
+		axes[i].speed.maxSpeed	 	= MAX_SPEED;
+		axes[i].speed.acceleration = 0.5; // mm/s^2
+		StartMotor(&axes[i].motor, axes[i].speed.currentSpeed, Forward);
+
+
 	}
 }
 
 void MoveToOrigin(){
 	for ( uint8_t i = X_AXIS ; i < AXES_NUM; i++){
 		axes[i].mode = AXIS_HOMING;
-		StartMotor(&axes[i].motor, 4999, Backward);
+		axes[i].speed.currentSpeed  = MIN_SPEED;
+		axes[i].speed.maxSpeed	 	= MAX_SPEED;
+		axes[i].speed.acceleration = 0.5; // mm/s^2
+		StartMotor(&axes[i].motor, axes[i].speed.currentSpeed, Backward);
 	}
 }
 
 void StopAxis(AxisType axis){
 	axes[axis].mode = AXIS_IDLE;
+	axes[axis].speed.currentSpeed = 0.0f;
 	StopMotor(&axes[axis].motor);
+}
+
+void SetSpeedAxis(AxisType axis){
+	SetSpeed(&axes[axis].motor, axes[axis].speed.currentSpeed);
 }
 
 uint8_t isHoming(){

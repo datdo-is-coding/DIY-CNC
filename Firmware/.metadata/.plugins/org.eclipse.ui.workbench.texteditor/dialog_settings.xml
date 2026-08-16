@@ -3,10 +3,17 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="true"/>
 	<list key="replacehistory">
+		<item value="AXIS_IDLE"/>
+		<item value="AXIS_CALIBRATING"/>
+		<item value="AXIS_HOMING"/>
+		<item value="Original"/>
 		<item value="-&gt;"/>
 		<item value="motor"/>
 	</list>
 	<list key="searchhistory">
+		<item value="Free"/>
+		<item value="Calibrate"/>
+		<item value="Original"/>
 		<item value="axes[Z_AXIS].mode = Free;"/>
 		<item value="axes[Y_AXIS].mode = Free;"/>
 		<item value="axes[X_AXIS].mode = Free;"/>

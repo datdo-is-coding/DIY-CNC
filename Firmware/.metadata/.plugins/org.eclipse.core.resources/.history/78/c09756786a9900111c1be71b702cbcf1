@@ -1,0 +1,15 @@
+/*
+ * cmd_line.h
+ *
+ *  Created on: Aug 16, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_CMD_LINE_H_
+#define INC_CMD_LINE_H_
+
+#define BUFFER_LENGTH 32
+
+extern buffer[BUFFER_LENGTH]
+
+#endif /* INC_CMD_LINE_H_ */

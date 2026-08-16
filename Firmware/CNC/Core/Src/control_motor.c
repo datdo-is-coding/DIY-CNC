@@ -23,9 +23,13 @@ void InitMotor(Motor* motor, TIM_HandleTypeDef* tim,
 	motor -> pin  =  pin;
 }
 
-void StartMotor(Motor* motor, uint32_t arr_value, uint8_t dir){
-	motor->ARR = arr_value;
-	motor->duty_value = (arr_value + 1) / 2;
+void StartMotor(Motor* motor, float velocity, uint8_t dir){
+
+	if(velocity < MIN_SPEED) velocity = MIN_SPEED;
+	else if(velocity > MAX_SPEED ) velocity = MAX_SPEED;
+
+	motor->ARR = (uint32_t)( 2500.0f / velocity ) - 1;
+	motor->duty_value = ( motor->ARR + 1 ) / 2;
 
 	uint8_t dir_bit =  (dir == Forward) ? motor -> forward_bit : !motor -> forward_bit;
 
@@ -42,14 +46,18 @@ void StartMotor(Motor* motor, uint32_t arr_value, uint8_t dir){
 	HAL_TIM_PWM_Start_IT(motor -> tim, motor -> channel);
 }
 
+
+
 void StopMotor(Motor* motor){
 	HAL_TIM_PWM_Stop_IT(motor -> tim, motor -> channel);
 }
 
-void SetSpeed(Motor* motor, uint32_t arr_value){
+void SetSpeed(Motor* motor, float velocity){
+	if(velocity < MIN_SPEED) velocity = MIN_SPEED;
+	else if(velocity > MAX_SPEED ) velocity = MAX_SPEED;
 
-	motor -> ARR = arr_value;
-	motor -> duty_value = (motor -> ARR + 1) / 2;
+	motor->ARR = (uint32_t)(2500.0f / velocity) - 1;
+	motor->duty_value = (motor->ARR + 1) / 2;
 
 	__HAL_TIM_SET_AUTORELOAD(motor->tim, motor->ARR);
 
@@ -59,3 +67,34 @@ void SetSpeed(Motor* motor, uint32_t arr_value){
 		motor->duty_value
 	);
 }
+
+/*
+ * Let's solve math problems
+ * We have to define all the variables we will use
+ * PSC (PreScaler = 71) (change all you want)
+ * F_TIM (Timer Frequency =  72 MHz)
+ *
+ * We have our stepper motors with 1 forth (1/4) step -> 1 round = 800 step
+ * (if we use choose to use full step with our stepper motors -> 1 round = 200 step)
+ *
+ * I have to specify that the linear actuators (Lead Screw) is T8/2
+ * 1 round = 2 mm -> 800 step = 2mm
+ * -> we have x = 1 / 400 (mm/step)
+ * We have velocity v (unit: mm/s) and s (unit: step/s)
+ * s = v / x = 400 * v
+ *
+ *
+ * We have T = 1 / f  for example we have a PWM freq = 1kHz
+ * -> T = 1ms -> as 1ms passed we have 1 step -> 1k step/s = 1kHz
+ * -> f_PWM = 1kHz = 1000 step/s
+ * so we have
+ *
+ * f_PWM = s = 400 * v
+ *
+ *
+ * f_PWM = f_TIM / ((PSC+1) * (ARR+1)) = 72MHz / (72 * (ARR +1))
+ * 400 * v = 1MHz / (ARR + 1)
+ * v = 2500 / (ARR + 1) (mm / s)
+ *
+ * */
+

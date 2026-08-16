@@ -15,19 +15,13 @@ typedef struct{
 
 	float maxSpeed;		// mm/s
 
-	float acceleration; // mm/s2
-	float deceleration; // mm/s2
+	float acceleration; // mm/s^2
+	float deceleration; // mm/s^2
 
 
 }SpeedProfile;
 
 
-void InitSpeedProfile(SpeedProfile* sp, float maxSpeed){
-	sp -> currentSpeed = 0;
-	sp -> targetSpeed  = 0;
-	sp -> maxSpeed     = maxSpeed;
-	sp -> acceleration = 0;
-	sp -> deceleration = 0;
-}
+void InitSpeedProfile(SpeedProfile* sp, float maxSpeed);
 
 #endif /* MOTION_PROFILE_H_ */

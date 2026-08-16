@@ -14,7 +14,7 @@
 
 #define AXES_NUM 3
 
-#define MAX_SPEED 200 // mm / s millimeter per second
+
 
 typedef enum{
 	X_AXIS,
@@ -56,9 +56,16 @@ void MoveToOrigin();
 
 void StopAxis(AxisType axis);
 
+void SetSpeedAxis(AxisType axis);
+
 uint8_t isHoming();
 
 uint8_t isCalibrating();
 
 void MoveTo();
+
+
+
+
+
 #endif /* INC_CONTROL_AXES_H_ */

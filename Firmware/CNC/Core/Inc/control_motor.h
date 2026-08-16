@@ -40,6 +40,9 @@
 
 #define SetDirection(port,pin,bit) HAL_GPIO_WritePin((port),(pin),(bit))
 
+#define MIN_SPEED 		0.5f 	// mm/s
+#define MAX_SPEED 		12.5f 	// mm/s
+
 typedef struct{
 	TIM_HandleTypeDef* tim;
 
@@ -59,8 +62,9 @@ void InitMotor(Motor* motor, TIM_HandleTypeDef* tim,
 			   uint32_t channel, uint8_t forward_bit, GPIO_TypeDef* port,
 			   uint16_t pin);
 
-void StartMotor(Motor* motor, uint32_t arr_value,uint8_t dir);
+
+void StartMotor(Motor* motor, float velocity, uint8_t dir);
 void StopMotor(Motor* motor);
-void SetSpeed(Motor* motor, uint32_t arr_value);
+void SetSpeed(Motor* motor, float velocity);
 
 #endif /* INC_CONTROL_MOTOR_H_ */

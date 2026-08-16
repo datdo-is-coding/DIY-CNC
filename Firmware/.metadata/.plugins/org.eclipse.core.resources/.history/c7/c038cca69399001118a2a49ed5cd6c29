@@ -1,0 +1,71 @@
+/*
+ * axes.h
+ *
+ *  Created on: Aug 15, 2026
+ *      Author: Admin
+ */
+
+#ifndef INC_CONTROL_AXES_H_
+#define INC_CONTROL_AXES_H_
+
+#include "control_motor.h"
+#include "speed_profile.h"
+
+
+#define AXES_NUM 3
+
+
+
+typedef enum{
+	X_AXIS,
+	Y_AXIS,
+	Z_AXIS
+}AxisType;
+
+typedef enum{
+	AXIS_IDLE,
+	AXIS_HOMING,
+	AXIS_CALIBRATING,
+	AXIS_MOVING	,
+
+}AxisMode;
+
+typedef struct{
+	AxisType axis;
+	AxisMode mode;
+
+	float limit;
+
+	uint32_t totalSteps;
+	uint32_t currentSteps;
+	uint32_t stepsDone;
+	Motor motor;
+
+	SpeedProfile speed;
+}Axis;
+
+extern Axis axes[AXES_NUM];
+
+
+
+void initAxes();
+
+void Calibration();
+
+void MoveToOrigin();
+
+void StopAxis(AxisType axis);
+
+void SetSpeedAxis(Axis* axis);
+
+uint8_t isHoming();
+
+uint8_t isCalibrating();
+
+void MoveTo();
+
+
+
+
+
+#endif /* INC_CONTROL_AXES_H_ */
